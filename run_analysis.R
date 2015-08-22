@@ -1,5 +1,7 @@
-require(dplyr)
+require(data.table)
 require(reshape2)
+
+# setwd("~/Desktop/Coursera/Data Science/3. Getting and Cleaning Data")
 
 # The code should have a file run_analysis.R in the main directory that
 # can be run as long as the Samsung data is in your working directory
@@ -17,33 +19,42 @@ if(!dir.exists(file.path(dataDir, "UCI HAR Dataset"))) {
 
 setwd(file.path(dataDir, "UCI HAR Dataset"))
 
-features.names <- tbl_df(read.table("features.txt"))
-activity.labels <- tbl_df(read.table("activity_labels.txt", header = F))
+features.names <- fread("features.txt", header = F)
+activity.labels <- fread("activity_labels.txt", header = F)
 
-features.test <- tbl_df(read.table(file.path("test", "X_test.txt"), header = F))
-activity.test <- tbl_df(read.table(file.path("test", "y_test.txt"), header = F))
-subject.test <-  tbl_df(read.table(file.path("test", "subject_test.txt"), header = F))
+# read all dataset files
 
-features.train <- tbl_df(read.table(file.path("train", "X_train.txt"), header = F))
-activity.train <- tbl_df(read.table(file.path("train", "y_train.txt"), header = F))
-subject.train <-  tbl_df(read.table(file.path("train", "subject_train.txt"), header = F))
+# test dataset
+
+# faster fread crashes on larger files (on my computer)...  read.table...
+features.test <- data.table(read.table(file.path("test", "X_test.txt")))
+activity.test <- fread(file.path("test", "y_test.txt"))
+subject.test <-  fread(file.path("test", "subject_test.txt"))
+
+#train dataset
+features.train <- data.table(read.table(file.path("train", "X_train.txt")))
+activity.train <- fread(file.path("train", "y_train.txt"))
+subject.train <-  fread(file.path("train", "subject_train.txt"))
 
 # Merges the training and the test sets (1)
-features <- bind_rows(features.train, features.test)
-activity <- bind_rows(activity.train, activity.test)
-subject <- bind_rows(subject.train, subject.test)
+features <- rbind(features.train, features.test)
+activity <- rbind(activity.train, activity.test)
+subject <- rbind(subject.train, subject.test)
+
+features.names.length <- nrow(features.names)
 
 # Appropriately labels the data set with descriptive variable names (4)
-colnames(features) <- t(features.names$V2)
-colnames(activity) <- "Activity"
-colnames(subject) <- "Subject"
+setnames(features, 1:features.names.length, t(features.names$V2))
+setnames(activity, 1, "Activity")
+setnames(subject, 1, "Subject")
 
 # Create one data set (1)
-fullData <- bind_cols(features, subject, activity)
+fullData <- cbind(features, subject, activity)
 
 # Extracts only the measurements on the mean and standard deviation for each measurement (2)
-data.indexes <- c(features.names[grep("-(mean|std)\\(", features.names$V2),]$V1, 562, 563)
-dataset <- fullData[, data.indexes]
+data.indexes <- c(grep("-(mean|std)\\(", features.names$V2),
+                  features.names.length + 1, features.names.length + 2)
+dataset <- fullData[, data.indexes, with = F]
 
 # Uses descriptive activity names to name the activities in the data set (3)
 dataset$Activity <- factor(dataset$Activity, levels = activity.labels$V1, labels = activity.labels$V2) 
@@ -54,6 +65,6 @@ mdata <- melt(dataset, id.vars = c("Subject", "Activity"))
 dataset <- dcast(mdata, Subject + Activity ~ variable, mean)
 
 # Data set as a txt file created with write.table() using row.name=FALSE
-write.table(dataset, "data5.txt", row.name = F)
+write.table(dataset, "averages.txt", row.name = F)
 
 setwd(wd)
