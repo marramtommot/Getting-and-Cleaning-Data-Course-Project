@@ -1,6 +1,6 @@
 # Getting-and-Cleaning-Data-Course-Project
 
-The script `run_analysis.R` produces a tidy data set with averages of values from experiments conducted by Samsung over 30 volunteers performing several activities wearing a smartphone on the waist.
+The script `run_analysis.R` produces a tidy data set with averages of values from experiments conducted by Samsung over 30 volunteers performing several activities, wearing a smartphone with motion sensors on the waist.
 
 ## How the script works
 
