@@ -17,7 +17,7 @@ if(!dir.exists(file.path(dataDir, "UCI HAR Dataset"))) {
 
 setwd(file.path(dataDir, "UCI HAR Dataset"))
 
-features.names <- read.table("features.txt")
+features.names <- tbl_df(read.table("features.txt"))
 activity.labels <- tbl_df(read.table("activity_labels.txt", header = F))
 
 features.test <- tbl_df(read.table(file.path("test", "X_test.txt"), header = F))
@@ -28,26 +28,28 @@ features.train <- tbl_df(read.table(file.path("train", "X_train.txt"), header = 
 activity.train <- tbl_df(read.table(file.path("train", "y_train.txt"), header = F))
 subject.train <-  tbl_df(read.table(file.path("train", "subject_train.txt"), header = F))
 
-# Merges the training and the test sets to create one data set
+# Merges the training and the test sets (1)
 features <- bind_rows(features.train, features.test)
 activity <- bind_rows(activity.train, activity.test)
 subject <- bind_rows(subject.train, subject.test)
-fullData <- bind_cols(features, subject, activity)
 
-# Extracts only the measurements on the mean and standard deviation for each measurement
-data.indexes <- c(features.names[grep("-(mean|std)\\(", features.names$V2),]$V1, 562, 563)
-dataset <- fullData[, data.indexes]
-
-# Appropriately labels the data set with descriptive variable names
+# Appropriately labels the data set with descriptive variable names (4)
 colnames(features) <- t(features.names$V2)
 colnames(activity) <- "Activity"
 colnames(subject) <- "Subject"
 
-# Uses descriptive activity names to name the activities in the data set
+# Create one data set (1)
+fullData <- bind_cols(features, subject, activity)
+
+# Extracts only the measurements on the mean and standard deviation for each measurement (2)
+data.indexes <- c(features.names[grep("-(mean|std)\\(", features.names$V2),]$V1, 562, 563)
+dataset <- fullData[, data.indexes]
+
+# Uses descriptive activity names to name the activities in the data set (3)
 dataset$Activity <- factor(dataset$Activity, levels = activity.labels$V1, labels = activity.labels$V2) 
 
 # Creates a second, independent tidy data set with the average of each variable
-# for each activity and each subject
+# for each activity and each subject (5)
 mdata <- melt(dataset, id.vars = c("Subject", "Activity"))
 dataset <- dcast(mdata, Subject + Activity ~ variable, mean)
 
