@@ -40,16 +40,16 @@ features.mean.and.std.indexes <- c(grep("-(mean|std)\\(", features.names$V2))
 
 full.dataset.ncols = ncol(full.dataset)
 reduced.dataset.columns <- c(features.mean.and.std.indexes, 
-                             full.dataset.ncols - 1,  # column Subject
-                             full.dataset.ncols)
+                             full.dataset.ncols - 1, # column Subject
+                             full.dataset.ncols)     # column Activity
 
 reduced.dataset <- full.dataset[, reduced.dataset.columns, with = F]
 
 # 3. Uses descriptive activity names to name the activities in the data set
 activity.labels <- fread("activity_labels.txt")
 reduced.dataset$Activity <- factor(reduced.dataset$Activity,
-                           levels = activity.labels$V1, 
-                           labels = activity.labels$V2) 
+                                   levels = activity.labels$V1,
+                                   labels = activity.labels$V2) 
 
 # 4. Appropriately labels the data set with descriptive variable names
 setnames(reduced.dataset, 1:(ncol(reduced.dataset) - 2),
