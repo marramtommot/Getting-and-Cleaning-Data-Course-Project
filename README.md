@@ -28,12 +28,11 @@ The script does the following:
 
 ## Code book
 
-The script `run_analysis.R` produces a tidy data set with averages of values from experiments conducted by Samsung over 30 volunteers performing several activities, wearing a smartphone with motion sensors on the waist.
+The script `run_analysis.R` produces a tidy data set with averages of values from experiments on Human Activity Recognition, conducted by Samsung with 30 volunteers performing activities of daily living, while carrying a waist-mounted smartphone with embedded inertial sensors.
 
-The original data set is divided by two main criteria: train and test observations over 561 variables.
-The train data set contains 7352 observations and the test data set contains 2947 observations.
+The original data set is divided by two main criterias: train and test observations over 561 variables. The train and the test data sets provide 7352 and 2947 observations repectively.
 
-The observations of each data set come in a folder structure containing several text files.
+The observations of each data set come in a folder structure containing text files.
 
 "UCI HAR Dataset": main folder, contains:
 
@@ -49,11 +48,11 @@ The observations of each data set come in a folder structure containing several 
 
 ### Data set
 
-*Subject*: the id of the volunteer that performed the activities wearing a smartphone on waist (1-30).
+**Subject**: the id of the volunteer that performed the activities wearing a smartphone on waist (1-30).
 
-*Activity*: the activity the subject performed (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING).
+**Activity**: the activity the subject performed (values: 1-6; labels: WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING).
 
-The other variables are the average of values that come from the signals:
+The other variables are the average of values (within a range -1, 1) representing the acquired smartphone signals. Their names are descriptive:
 
 * '-XYZ' is used to denote 3-axial signals in the X, Y and Z directions;
 
