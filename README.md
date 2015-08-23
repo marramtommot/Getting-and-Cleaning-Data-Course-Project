@@ -1,20 +1,34 @@
-# Getting-and-Cleaning-Data-Course-Project
-
-The script `run_analysis.R` produces a tidy data set with averages of values from experiments conducted by Samsung over 30 volunteers performing several activities, wearing a smartphone with motion sensors on the waist.
+# Getting and Cleaning Data - Course Project
 
 ## How the script works
 
-It is a plain script runnable with `source('run_analysis.R')`.
+It is a script runnable with `source('run_analysis.R')`.
 
 The script does the following:
 
-1. Merges the training and the test sets to create one data set.
-2. Extracts only the measurements on the mean and standard deviation for each measurement. 
-3. Uses descriptive activity names to name the activities in the data set
+1.  Merges the training and the test sets to create one data set.
+
+    Binds the rows from train and test features, subject, and activity, separately; renames the columns for subject and activity then binds the columns to create one data set.
+
+2. Extracts only the measurements on the mean and standard deviation for each measurement.
+
+    Creates a reduced data set subsetting the columns with the indexes of columns containing "mean()"" and "std()". The variables now are 66 (plus Subject and Activity columns).
+
+3. Uses descriptive activity names to name the activities in the data set.
+
+    Creates levels and labels for the Activity column using the map in `activity_labels.txt`.
+
 4. Appropriately labels the data set with descriptive variable names. 
+
+    Sets the column name from column 1 to 66 with a subset of names with indexes from the step 2.
+
 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
 
+    Melts the data set then uses `dcast.data.table` to rebuild it with the averages, grouping by Subject and Activity columns.
+
 ## Code book
+
+The script `run_analysis.R` produces a tidy data set with averages of values from experiments conducted by Samsung over 30 volunteers performing several activities, wearing a smartphone with motion sensors on the waist.
 
 The original data set is divided by two main criteria: train and test observations over 561 variables.
 The train data set contains 7352 observations and the test data set contains 2947 observations.
@@ -29,9 +43,9 @@ The observations of each data set come in a folder structure containing several 
   
   * the folders `train` and `test`; each folder, where * is the name of the folder, contains:
 
-    * `subject_*.txt`: ids of the subject for every observation;
     * `X_*.txt`: values for every observation;
-    * `y_*.txt`: the activity performed for every observation.
+    * `y_*.txt`: the activity performed for every observation;
+    * `subject_*.txt`: ids of the subject for every observation.
 
 ### Data set
 

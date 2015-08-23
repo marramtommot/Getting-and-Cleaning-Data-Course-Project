@@ -1,70 +1,66 @@
-require(data.table)
 require(reshape2)
+require(data.table)
 
-# setwd("~/Desktop/Coursera/Data Science/3. Getting and Cleaning Data")
+wd <- getwd()
 
-# The code should have a file run_analysis.R in the main directory that
-# can be run as long as the Samsung data is in your working directory
-dataDir <- wd <- getwd()
-
-if(!dir.exists(file.path(dataDir, "UCI HAR Dataset"))) {
+if(!dir.exists("UCI HAR Dataset")) {
   url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-  archive <- file.path(dataDir, "UCI_HAR_Dataset.zip")
+  archive <- "UCI_HAR_Dataset.zip"
   download.file(url, archive)
   
-  unzip(archive, exdir = dataDir)
-  
-  dir(dataDir)
+  unzip(archive)
+  unlink(archive)
 }
 
-setwd(file.path(dataDir, "UCI HAR Dataset"))
+# 1. Merges the training and the test sets to create one data set
 
-features.names <- fread("features.txt", header = F)
-activity.labels <- fread("activity_labels.txt", header = F)
+# Faster fread crashes on larger files (on my computer) and cannot handle
+# multiple space column delimiter... 
+# using read.table instead for X_test.txt and X_train.txt
 
-# read all dataset files
+setwd("UCI HAR Dataset")
 
-# test dataset
+features <- rbind(data.table(read.table(file.path("train", "X_train.txt"))),
+                  data.table(read.table(file.path("test", "X_test.txt"))))
 
-# faster fread crashes on larger files (on my computer)...  read.table...
-features.test <- data.table(read.table(file.path("test", "X_test.txt")))
-activity.test <- fread(file.path("test", "y_test.txt"))
-subject.test <-  fread(file.path("test", "subject_test.txt"))
+activity <- rbind(fread(file.path("train", "y_train.txt")),
+                  fread(file.path("test", "y_test.txt")))
 
-#train dataset
-features.train <- data.table(read.table(file.path("train", "X_train.txt")))
-activity.train <- fread(file.path("train", "y_train.txt"))
-subject.train <-  fread(file.path("train", "subject_train.txt"))
+subject <- rbind(fread(file.path("train", "subject_train.txt")),
+                 fread(file.path("test", "subject_test.txt")))
 
-# Merges the training and the test sets (1)
-features <- rbind(features.train, features.test)
-activity <- rbind(activity.train, activity.test)
-subject <- rbind(subject.train, subject.test)
-
-features.names.length <- nrow(features.names)
-
-# Appropriately labels the data set with descriptive variable names (4)
-setnames(features, 1:features.names.length, t(features.names$V2))
 setnames(activity, 1, "Activity")
-setnames(subject, 1, "Subject")
+setnames(subject,  1, "Subject")
 
-# Create one data set (1)
-fullData <- cbind(features, subject, activity)
+full.dataset <- cbind(features, subject, activity)
 
-# Extracts only the measurements on the mean and standard deviation for each measurement (2)
-data.indexes <- c(grep("-(mean|std)\\(", features.names$V2),
-                  features.names.length + 1, features.names.length + 2)
-dataset <- fullData[, data.indexes, with = F]
+# 2. Extracts only the measurements on the mean and standard deviation for each measurement
+features.names <- fread("features.txt")
+features.mean.and.std.indexes <- c(grep("-(mean|std)\\(", features.names$V2))
 
-# Uses descriptive activity names to name the activities in the data set (3)
-dataset$Activity <- factor(dataset$Activity, levels = activity.labels$V1, labels = activity.labels$V2) 
+full.dataset.ncols = ncol(full.dataset)
+reduced.dataset.columns <- c(features.mean.and.std.indexes, 
+                             full.dataset.ncols - 1,  # column Subject
+                             full.dataset.ncols)
 
-# Creates a second, independent tidy data set with the average of each variable
-# for each activity and each subject (5)
-mdata <- melt(dataset, id.vars = c("Subject", "Activity"))
-dataset <- dcast(mdata, Subject + Activity ~ variable, mean)
+reduced.dataset <- full.dataset[, reduced.dataset.columns, with = F]
+
+# 3. Uses descriptive activity names to name the activities in the data set
+activity.labels <- fread("activity_labels.txt")
+reduced.dataset$Activity <- factor(reduced.dataset$Activity,
+                           levels = activity.labels$V1, 
+                           labels = activity.labels$V2) 
+
+# 4. Appropriately labels the data set with descriptive variable names
+setnames(reduced.dataset, 1:(ncol(reduced.dataset) - 2),
+         t(features.names[features.mean.and.std.indexes,]$V2))
+
+# 5. Creates a second, independent tidy data set with the average of each variable
+#    for each activity and each subject
+melted.dataset <- melt(reduced.dataset, id.vars = c("Subject", "Activity"))
+final.dataset <- dcast.data.table(melted.dataset, Subject + Activity ~ variable, mean)
 
 # Data set as a txt file created with write.table() using row.name=FALSE
-write.table(dataset, "averages.txt", row.name = F)
+write.table(final.dataset, "averages.txt", row.name = F)
 
 setwd(wd)
